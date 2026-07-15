@@ -1,0 +1,96 @@
+{
+  "name": "animebill",
+  "version": "1.0.0",
+  "description": "Anime-Themed E-Bill Generator for shops, malls, and online sellers",
+  "main": "main.js",
+  "author": {
+    "name": "iprsnmsra",
+    "url": "https://github.com/iprsnmsra"
+  },
+  "license": "MIT",
+  "homepage": "https://github.com/iprsnmsra/AnimeBill",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/iprsnmsra/AnimeBill"
+  },
+  "scripts": {
+    "start":       "electron .",
+    "dev":         "electron . --dev",
+    "build":       "electron-builder build --win --publish never",
+    "build:all":   "electron-builder build --win --mac --linux --publish never",
+    "build:mac":   "electron-builder build --mac --publish never",
+    "build:linux": "electron-builder build --linux --publish never",
+    "dist":        "electron-builder --win nsis"
+  },
+  "devDependencies": {
+    "electron":         "^29.0.0",
+    "electron-builder": "^24.13.0"
+  },
+  "build": {
+    "appId":       "com.iprsnmsra.animebill",
+    "productName": "AnimeBill",
+    "copyright":   "© 2026 iprsnmsra",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "index.html",
+      "main.js",
+      "css/**",
+      "js/**",
+      "build/**",
+      "!node_modules",
+      "!dist",
+      "!*.md",
+      "!*.bat",
+      "!*.sh"
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": ["x64", "ia32"]
+        },
+        {
+          "target": "portable",
+          "arch": ["x64"]
+        }
+      ],
+      "icon": "build/icon.png",
+      "artifactName": "AnimeBill-Setup-${version}.${ext}",
+      "requestedExecutionLevel": "asInvoker"
+    },
+    "nsis": {
+      "oneClick":               false,
+      "allowElevation":         true,
+      "allowToChangeInstallationDirectory": true,
+      "installerIcon":          "build/icon.png",
+      "uninstallerIcon":        "build/icon.png",
+      "installerHeaderIcon":    "build/icon.png",
+      "createDesktopShortcut":  true,
+      "createStartMenuShortcut": true,
+      "shortcutName":           "AnimeBill",
+      "displayLanguageSelector": false,
+      "installerSidebar":       null,
+      "uninstallDisplayName":   "AnimeBill — Anime E-Bill Generator",
+      "license":                null,
+      "warningsAsErrors":       false
+    },
+    "mac": {
+      "target": "dmg",
+      "icon": "build/icon.png",
+      "category": "public.app-category.business",
+      "artifactName": "AnimeBill-${version}.${ext}"
+    },
+    "linux": {
+      "target": ["AppImage", "deb"],
+      "icon": "build/icon.png",
+      "category": "Office",
+      "artifactName": "AnimeBill-${version}.${ext}"
+    },
+    "portable": {
+      "artifactName": "AnimeBill-Portable-${version}.${ext}"
+    },
+    "publish": null
+  }
+}

@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AnimeBill — Anime-Themed E-Bill Generator</title>
+  <meta name="description" content="Generate beautiful anime-themed e-bills for your shop, mall, bookstore, or online store. Black and white metallic style with random anime character sketch backgrounds.">
+  <meta name="keywords" content="anime bill, receipt generator, shop bill, anime receipt, one piece, naruto, jujutsu kaisen, demon slayer, e-bill, iprsnmsra, animebill">
+  <meta name="author" content="iprsnmsra">
+  <meta property="og:title" content="AnimeBill — Anime E-Bill Generator">
+  <meta property="og:description" content="Bills that make people smile — with anime character sketches inside!">
+  <meta property="og:type" content="website">
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Exo+2:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,400&family=Rajdhani:wght@400;500;600;700&family=Bebas+Neue&family=Bangers&family=Creepster&family=Press+Start+2P&family=Righteous&family=Russo+One&family=Special+Elite&family=Noto+Serif+JP:wght@400;700&family=Black+Han+Sans&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="css/style.css">
+
+  <!-- html2canvas — MUST load synchronously for PNG export -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+  <!-- App Icon (emoji fallback) -->
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎌</text></svg>">
+</head>
+<body>
+
+  <!-- ═══ APP HEADER ═══ -->
+  <header class="app-header" role="banner">
+    <div class="header-logo" aria-label="AnimeBill">
+      <span class="logo-icon" aria-hidden="true">🎌</span>
+      <span>Anime<span class="logo-accent">Bill</span></span>
+    </div>
+    <div class="header-subtitle" aria-hidden="true">Anime-Powered Receipt Generator</div>
+    <div class="header-right">
+      <div class="header-badge">by iprsnmsra</div>
+      <div id="authZone" class="auth-zone"><!-- populated by auth.js --></div>
+    </div>
+  </header>
+
+  <!-- ═══ MAIN LAYOUT ═══ -->
+  <main class="app-main" role="main">
+
+    <!-- LEFT PANEL — FORM -->
+    <section class="form-panel" aria-label="Bill Configuration">
+
+      <!-- Shop Details -->
+      <div class="form-section">
+        <h2 class="section-title">🏪 Shop Details</h2>
+        <div class="form-group">
+          <label for="shopName">Store / Shop Name *</label>
+          <input type="text" id="shopName" placeholder="e.g., Akira Electronics" maxlength="60" autocomplete="organization" oninput="updatePreview()">
+        </div>
+        <div class="form-group">
+          <label for="shopAddress">Address (optional)</label>
+          <input type="text" id="shopAddress" placeholder="e.g., 123 Anime Street, Mumbai 400001" maxlength="80" oninput="updatePreview()">
+        </div>
+        <div class="form-group">
+          <label for="shopPhone">Phone Number (optional)</label>
+          <input type="tel" id="shopPhone" placeholder="e.g., +91 98765 43210" maxlength="20" oninput="liveUpdate()">
+        </div>
+        <div class="form-group">
+          <label for="gstin">GSTIN Number (optional)</label>
+          <input type="text" id="gstin" placeholder="e.g., 27AAPFU0939F1ZV" maxlength="15" style="text-transform:uppercase;font-family:var(--font-mono);letter-spacing:0.06em" oninput="this.value=this.value.toUpperCase();liveUpdate()" autocomplete="off">
+        </div>
+      </div>
+
+      <!-- Currency -->
+      <div class="form-section">
+        <h2 class="section-title">💰 Currency</h2>
+        <div class="currency-grid" id="currencyGrid" role="group" aria-label="Currency">
+          <button class="currency-btn active" id="btn-INR" data-symbol="₹" data-code="INR" onclick="selectCurrency(this)">₹ INR</button>
+          <button class="currency-btn" id="btn-USD" data-symbol="$"  data-code="USD" onclick="selectCurrency(this)">$ USD</button>
+          <button class="currency-btn" id="btn-EUR" data-symbol="€"  data-code="EUR" onclick="selectCurrency(this)">€ EUR</button>
+          <button class="currency-btn" id="btn-GBP" data-symbol="£"  data-code="GBP" onclick="selectCurrency(this)">£ GBP</button>
+          <button class="currency-btn" id="btn-JPY" data-symbol="¥"  data-code="JPY" onclick="selectCurrency(this)">¥ JPY</button>
+          <button class="currency-btn" id="btn-KRW" data-symbol="₩"  data-code="KRW" onclick="selectCurrency(this)">₩ KRW</button>
+        </div>
+      </div>
+
+      <!-- Items -->
+      <div class="form-section">
+        <h2 class="section-title">🛒 Purchase Items</h2>
+        <div id="itemsList" role="list"></div>
+        <button class="add-item-btn" id="addItemBtn" onclick="addItem()">+ Add Item</button>
+      </div>
+
+      <!-- Anime Character -->
+      <div class="form-section">
+        <h2 class="section-title">🎌 Anime Character</h2>
+        <div class="anime-controls">
+          <button class="anime-btn" id="randomCharBtn" onclick="randomizeCharacter()">
+            🎲 Random Character
+          </button>
+          <div class="anime-select-container">
+            <select id="characterSelect" class="anime-select" onchange="selectCharacter()">
+              <!-- Populated by JS -->
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Actions -->
+      <div class="action-buttons no-print" role="group">
+        <button class="btn-generate" id="generateBtn" onclick="generateBill()">
+          <span>→</span> Generate Bill
+        </button>
+        <button class="btn-print" id="printBtn" onclick="printBill()">
+          <span>🖨️</span> Print
+        </button>
+        <button class="btn-png" id="pngBtn" onclick="downloadPNG()">
+          <span>📥</span> Save PNG
+        </button>
+      </div>
+
+      <div class="form-footer-credit">
+        ANIMEBILL v1.0 · GITHUB.COM/IPRSNMSRA
+      </div>
+
+    </section>
+
+    <!-- RIGHT PANEL — PREVIEW -->
+    <section class="preview-panel" aria-label="Bill Preview">
+      <div class="preview-header no-print">
+        <h2 class="preview-title">👁️ Live Bill Preview</h2>
+        <div class="preview-badge" aria-live="polite">● Live</div>
+      </div>
+
+      <div class="bill-wrapper" id="billWrapper" role="region" aria-label="Generated bill">
+        <div class="bill-placeholder" id="billPlaceholder">
+          <div class="placeholder-icon" aria-hidden="true">🎌</div>
+          <p>Fill in your shop details,<br>add items, then click</p>
+          <p style="font-size:1.05rem; font-weight:700; color:#111;">⚡ Generate Bill</p>
+          <p style="font-size:0.78rem; color:#aaa; margin-top:0.3rem;">
+            Random anime character + quote on every bill!
+          </p>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ═══ AUTH MODAL ═══ -->
+  <div id="authModal" class="auth-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="authModalTitle">
+    <div class="auth-modal">
+
+      <!-- Modal Header -->
+      <div class="auth-modal-header">
+        <div class="auth-modal-logo">🎌 AnimeBill</div>
+        <button class="auth-modal-close" onclick="closeAuthModal()" aria-label="Close">&times;</button>
+      </div>
+
+      <!-- Tabs -->
+      <div class="auth-tabs" role="tablist">
+        <button class="auth-tab-btn active" data-tab="login"    role="tab" onclick="switchAuthTab('login')">Sign In</button>
+        <button class="auth-tab-btn"        data-tab="register" role="tab" onclick="switchAuthTab('register')">Create Account</button>
+      </div>
+
+      <!-- Error box -->
+      <div id="authError" class="auth-error" style="display:none"></div>
+
+      <!-- LOGIN PANEL -->
+      <div id="authLoginPanel" class="auth-panel" style="display:flex">
+        <div class="auth-field-group">
+          <label class="auth-label" for="authLoginEmail">Email Address</label>
+          <input class="auth-input" id="authLoginEmail" type="email" placeholder="your@email.com" autocomplete="email">
+        </div>
+        <div class="auth-field-group">
+          <label class="auth-label" for="authLoginPassword">Password</label>
+          <input class="auth-input" id="authLoginPassword" type="password" placeholder="Enter your password" autocomplete="current-password">
+        </div>
+        <button class="auth-submit-btn" id="loginSubmitBtn" onclick="doLogin()">Sign In →</button>
+        <p class="auth-switch-text">Don't have an account?
+          <button class="auth-link-btn" onclick="switchAuthTab('register')">Create one free</button>
+        </p>
+      </div>
+
+      <!-- REGISTER PANEL -->
+      <div id="authRegisterPanel" class="auth-panel" style="display:none">
+        <div class="auth-field-group">
+          <label class="auth-label" for="authName">Your Name / Store Owner</label>
+          <input class="auth-input" id="authName" type="text" placeholder="e.g., Rahul Sharma" autocomplete="name">
+        </div>
+        <div class="auth-field-group">
+          <label class="auth-label" for="authEmail">Email Address</label>
+          <input class="auth-input" id="authEmail" type="email" placeholder="your@email.com" autocomplete="email">
+        </div>
+        <div class="auth-field-group">
+          <label class="auth-label" for="authPassword">Password <span style="color:#888;font-size:0.7rem;font-weight:400">(min. 6 chars)</span></label>
+          <input class="auth-input" id="authPassword" type="password" placeholder="Create a password" autocomplete="new-password">
+        </div>
+        <button class="auth-submit-btn" id="registerSubmitBtn" onclick="doRegister()">Create Account →</button>
+        <p class="auth-switch-text">Already have an account?
+          <button class="auth-link-btn" onclick="switchAuthTab('login')">Sign in</button>
+        </p>
+      </div>
+
+      <p class="auth-note">🔒 Your data is stored locally on this device only.</p>
+    </div>
+  </div>
+
+  <!-- ═══ SCRIPTS ═══ -->
+  <script src="js/quotes.js"></script>
+  <script src="js/sketches.js"></script>
+  <script src="js/app.js"></script>
+  <script src="js/auth.js"></script>
+
+</body>
+</html>
