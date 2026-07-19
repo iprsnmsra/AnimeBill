@@ -8,7 +8,7 @@
 //   sketchImg  — path to a real B&W sketch PNG image
 //   sketchSvg  — inline SVG (fallback for remaining characters)
 
-const ANIME_CHARACTERS = [
+var ANIME_CHARACTERS = [
 
   // ══════════ ONE PIECE ══════════
   {
