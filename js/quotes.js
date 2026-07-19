@@ -1,68 +1,372 @@
-// AnimeBill — Quotes Library
+// ═══════════════════════════════════════════════════════
+// AnimeBill — Anime Character Sketches
+// Real B&W manga portrait images + SVG fallbacks
 // © AnimeBill by iprsnmsra | github.com/iprsnmsra
+// ═══════════════════════════════════════════════════════
 
-const ANIME_QUOTES = [
-  // One Piece
-  { text: "I'm going to be King of the Pirates!", emoji: "⚓", source: "Monkey D. Luffy — One Piece" },
-  { text: "People's dreams never end!", emoji: "🔥", source: "Whitebeard — One Piece" },
-  { text: "Nothing happened.", emoji: "😏", source: "Roronoa Zoro — One Piece" },
-  { text: "You need a reason to save someone?", emoji: "❤️", source: "Zoro — One Piece" },
-  { text: "I don't want to conquer anything. I just think the guy with the most freedom in the sea is King of the Pirates!", emoji: "🏴‍☠️", source: "Luffy — One Piece" },
+// Each character has either:
+//   sketchImg  — path to a real B&W sketch PNG image
+//   sketchSvg  — inline SVG (fallback for remaining characters)
 
-  // Naruto
-  { text: "Hard work betrays none, but dreams betray many.", emoji: "💪", source: "Hachiman Hikigaya" },
-  { text: "A dropout will beat a genius through hard work!", emoji: "📚", source: "Rock Lee — Naruto" },
-  { text: "Don't give up! That's your nindō — your ninja way!", emoji: "🌀", source: "Naruto Uzumaki" },
-  { text: "In this world, wherever there is light, there are also shadows.", emoji: "🌗", source: "Itachi Uchiha — Naruto" },
-  { text: "If you don't share someone's pain, you can never understand them.", emoji: "💙", source: "Nagato — Naruto" },
+const ANIME_CHARACTERS = [
 
-  // Dragon Ball Z
-  { text: "Weakness is a sin.", emoji: "⚡", source: "Vegeta — Dragon Ball Z" },
-  { text: "I am the hope of the universe!", emoji: "✊", source: "Goku — Dragon Ball Z" },
-  { text: "Power comes in response to a need, not a desire.", emoji: "🌊", source: "Goku — Dragon Ball Z" },
-  { text: "It's not over until it's over!", emoji: "💥", source: "Vegeta — Dragon Ball Z" },
-  { text: "Surpass your limits. Right here. Right now!", emoji: "🔥", source: "Vegeta — Dragon Ball Z" },
+  // ══════════ ONE PIECE ══════════
+  {
+    id: 'luffy',
+    name: 'Monkey D. Luffy',
+    anime: 'One Piece',
+    type: 'img',
+    sketchImg: 'assets/sketches/luffy.png',
+    animeFont: "'Bangers', cursive",
+    animeFontSize: '1.15rem',
+  },
+  {
+    id: 'zoro',
+    name: 'Roronoa Zoro',
+    anime: 'One Piece',
+    type: 'img',
+    sketchImg: 'assets/sketches/zoro.png',
+    animeFont: "'Bangers', cursive",
+    animeFontSize: '1.15rem',
+  },
+  {
+    id: 'nami',
+    name: 'Nami',
+    anime: 'One Piece',
+    type: 'img',
+    sketchImg: 'assets/sketches/nami.png',
+    animeFont: "'Bangers', cursive",
+    animeFontSize: '1.15rem',
+  },
+  {
+    id: 'ace',
+    name: 'Portgas D. Ace',
+    anime: 'One Piece',
+    type: 'img',
+    sketchImg: 'assets/sketches/ace.png',
+    animeFont: "'Bangers', cursive",
+    animeFontSize: '1.15rem',
+  },
+  {
+    id: 'sanji',
+    name: 'Sanji',
+    anime: 'One Piece',
+    type: 'img',
+    sketchImg: 'assets/sketches/sanji.png',
+    animeFont: "'Bangers', cursive",
+    animeFontSize: '1.15rem',
+  },
 
-  // Jujutsu Kaisen
-  { text: "Throughout Heaven and Earth, I alone am the honoured one.", emoji: "👑", source: "Ryomen Sukuna — JJK" },
-  { text: "Don't worry, I'm the strongest.", emoji: "😎", source: "Gojo Satoru — JJK" },
-  { text: "No matter how hard or impossible it is, never lose sight of your goal.", emoji: "🎯", source: "Monkey D. Luffy" },
+  // ══════════ JUJUTSU KAISEN ══════════
+  {
+    id: 'gojo',
+    name: 'Gojo Satoru',
+    anime: 'Jujutsu Kaisen',
+    type: 'img',
+    sketchImg: 'assets/sketches/gojo.png',
+    animeFont: "'Creepster', cursive",
+    animeFontSize: '0.88rem',
+  },
+  {
+    id: 'itadori',
+    name: 'Itadori Yuji',
+    anime: 'Jujutsu Kaisen',
+    type: 'img',
+    sketchImg: 'assets/sketches/itadori.png',
+    animeFont: "'Creepster', cursive",
+    animeFontSize: '0.88rem',
+  },
+  {
+    id: 'sukuna',
+    name: 'Ryomen Sukuna',
+    anime: 'Jujutsu Kaisen',
+    type: 'img',
+    sketchImg: 'assets/sketches/sukuna.png',
+    animeFont: "'Creepster', cursive",
+    animeFontSize: '0.88rem',
+  },
+  {
+    id: 'nobara',
+    name: 'Nobara Kugisaki',
+    anime: 'Jujutsu Kaisen',
+    type: 'img',
+    sketchImg: 'assets/sketches/nobara.png',
+    animeFont: "'Creepster', cursive",
+    animeFontSize: '0.88rem',
+  },
+  {
+    id: 'megumi',
+    name: 'Megumi Fushiguro',
+    anime: 'Jujutsu Kaisen',
+    type: 'img',
+    sketchImg: 'assets/sketches/megumi.png',
+    animeFont: "'Creepster', cursive",
+    animeFontSize: '0.88rem',
+  },
 
-  // Attack on Titan
-  { text: "If you win, you live. If you lose, you die. If you don't fight, you can't win!", emoji: "⚔️", source: "Eren Yeager — AoT" },
-  { text: "Keep moving forward. Even if it's a crawl.", emoji: "🦋", source: "Levi Ackerman — AoT" },
+  // ══════════ POKÉMON ══════════
+  {
+    id: 'ash',
+    name: 'Ash Ketchum',
+    anime: 'Pokémon',
+    type: 'img',
+    sketchImg: 'assets/sketches/ash.png',
+    animeFont: "'Press Start 2P', cursive",
+    animeFontSize: '0.55rem',
+  },
+  {
+    id: 'pikachu',
+    name: 'Pikachu',
+    anime: 'Pokémon',
+    type: 'img',
+    sketchImg: 'assets/sketches/pikachu.png',
+    animeFont: "'Press Start 2P', cursive",
+    animeFontSize: '0.55rem',
+  },
 
-  // Demon Slayer
-  { text: "I can do it. I know I can do it. I'm the guy who will surpass the Hashira!", emoji: "🌊", source: "Tanjiro Kamado" },
-  { text: "The bond between Demon Slayers is forged through blood and tears.", emoji: "🌸", source: "Demon Slayer" },
+  // ══════════ NARUTO ══════════
+  {
+    id: 'naruto',
+    name: 'Naruto Uzumaki',
+    anime: 'Naruto',
+    type: 'img',
+    sketchImg: 'assets/sketches/naruto.png',
+    animeFont: "'Righteous', cursive",
+    animeFontSize: '1.0rem',
+  },
+  {
+    id: 'sasuke',
+    name: 'Sasuke Uchiha',
+    anime: 'Naruto',
+    type: 'img',
+    sketchImg: 'assets/sketches/sasuke.png',
+    animeFont: "'Righteous', cursive",
+    animeFontSize: '1.0rem',
+  },
 
-  // FMA
-  { text: "The world isn't perfect. But it's there for us, doing the best it can.", emoji: "🌍", source: "Roy Mustang — FMA" },
-  { text: "To gain something, something of equal value must be lost.", emoji: "⚖️", source: "Edward Elric — FMA" },
+  // ══════════ DRAGON BALL Z ══════════
+  {
+    id: 'goku',
+    name: 'Son Goku',
+    anime: 'Dragon Ball Z',
+    type: 'img',
+    sketchImg: 'assets/sketches/goku.png',
+    animeFont: "'Black Han Sans', sans-serif",
+    animeFontSize: '0.9rem',
+  },
+  {
+    id: 'vegeta',
+    name: 'Vegeta',
+    anime: 'Dragon Ball Z',
+    type: 'img',
+    sketchImg: 'assets/sketches/vegeta.png',
+    animeFont: "'Black Han Sans', sans-serif",
+    animeFontSize: '0.9rem',
+  },
 
-  // Pokémon
-  { text: "Gotta catch 'em all! Every day is a new adventure! 🌟", emoji: "⚡", source: "Ash Ketchum — Pokémon" },
-  { text: "I choose YOU!", emoji: "❤️", source: "Ash Ketchum — Pokémon" },
+  // ══════════ ATTACK ON TITAN ══════════
+  {
+    id: 'levi',
+    name: 'Levi Ackerman',
+    anime: 'Attack on Titan',
+    type: 'img',
+    sketchImg: 'assets/sketches/levi.png',
+    animeFont: "'Russo One', sans-serif",
+    animeFontSize: '0.82rem',
+  },
+  {
+    id: 'eren',
+    name: 'Eren Yeager',
+    anime: 'Attack on Titan',
+    type: 'img',
+    sketchImg: 'assets/sketches/eren.png',
+    animeFont: "'Russo One', sans-serif",
+    animeFontSize: '0.82rem',
+  },
 
-  // Motivational
-  { text: "The sky is not the limit. Your mind is!", emoji: "☁️", source: "Life Philosophy" },
-  { text: "Today's pain is tomorrow's power.", emoji: "💥", source: "Motivation" },
-  { text: "Chase your dreams, not people's approval.", emoji: "🦋", source: "Reality" },
-  { text: "Every sunrise is an invitation to arise and pursue greatness!", emoji: "🌅", source: "Philosophy" },
-  { text: "Small steps every day lead to giant leaps over time.", emoji: "👣", source: "Wisdom" },
-  { text: "Even the greatest were once beginners. Don't be afraid to start.", emoji: "🌱", source: "Wisdom" },
-  { text: "Without darkness, stars wouldn't shine as bright.", emoji: "⭐", source: "Reality" },
-  { text: "Fear is not evil. It tells you what your weakness is.", emoji: "⚡", source: "Gildarts — Fairy Tail" },
+  // ══════════ FULLMETAL ALCHEMIST ══════════
+  {
+    id: 'edward',
+    name: 'Edward Elric',
+    anime: 'Fullmetal Alchemist',
+    type: 'img',
+    sketchImg: 'assets/sketches/edward.png',
+    animeFont: "'Special Elite', cursive",
+    animeFontSize: '0.78rem',
+  },
 
-  // Store-themed
-  { text: "Thank you for choosing us! Your smile is our best reward! 🛍️", emoji: "🎉", source: "AnimeBill Store" },
-  { text: "Every purchase is a step toward something greater!", emoji: "💰", source: "AnimeBill" },
-  { text: "Your support means the world to us — Come again soon!", emoji: "🙏", source: "AnimeBill Store" },
-  { text: "The best investment is in the things that truly matter to you!", emoji: "🌸", source: "Life" },
-  { text: "Great things are done by a series of small things brought together.", emoji: "🔗", source: "Philosophy" },
-  { text: "It always seems impossible until it's done!", emoji: "🏆", source: "Wisdom" },
+  // ══════════ DEMON SLAYER ══════════
+  {
+    id: 'tanjiro',
+    name: 'Tanjiro Kamado',
+    anime: 'Demon Slayer',
+    type: 'img',
+    sketchImg: 'assets/sketches/tanjiro.png',
+    animeFont: "'Noto Serif JP', serif",
+    animeFontSize: '0.85rem',
+  },
+
+  // ══════════ GTA V — AAA GAMES ══════════
+  {
+    id: 'michael',
+    name: 'Michael De Santa',
+    anime: 'GTA V',
+    type: 'img',
+    sketchImg: 'assets/sketches/michael.png',
+    animeFont: "'Bebas Neue', cursive",
+    animeFontSize: '1.1rem',
+  },
+  {
+    id: 'franklin',
+    name: 'Franklin Clinton',
+    anime: 'GTA V',
+    type: 'img',
+    sketchImg: 'assets/sketches/franklin.png',
+    animeFont: "'Bebas Neue', cursive",
+    animeFontSize: '1.1rem',
+  },
+  {
+    id: 'trevor',
+    name: 'Trevor Philips',
+    anime: 'GTA V',
+    type: 'img',
+    sketchImg: 'assets/sketches/trevor.png',
+    animeFont: "'Bebas Neue', cursive",
+    animeFontSize: '1.1rem',
+  },
+
+  // ══════════ CALL OF DUTY ══════════
+  {
+    id: 'ghost',
+    name: 'Simon "Ghost" Riley',
+    anime: 'Call of Duty',
+    type: 'img',
+    sketchImg: 'assets/sketches/ghost.png',
+    animeFont: "'Russo One', sans-serif",
+    animeFontSize: '0.82rem',
+  },
+
+  // ══════════ RESIDENT EVIL ══════════
+  {
+    id: 'leon',
+    name: 'Leon S. Kennedy',
+    anime: 'Resident Evil',
+    type: 'img',
+    sketchImg: 'assets/sketches/leon.png',
+    animeFont: "'Special Elite', cursive",
+    animeFontSize: '0.78rem',
+  },
+
+  // ══════════ GOD OF WAR ══════════
+  {
+    id: 'kratos',
+    name: 'Kratos',
+    anime: 'God of War',
+    type: 'img',
+    sketchImg: 'assets/sketches/kratos.png',
+    animeFont: "'Russo One', sans-serif",
+    animeFontSize: '0.88rem',
+  },
+
+  // ══════════ RED DEAD REDEMPTION 2 ══════════
+  {
+    id: 'arthur',
+    name: 'Arthur Morgan',
+    anime: 'Red Dead Redemption 2',
+    type: 'img',
+    sketchImg: 'assets/sketches/arthur.png',
+    animeFont: "'Special Elite', cursive",
+    animeFontSize: '0.7rem',
+  },
+
+  // ══════════ MARVEL AVENGERS ══════════
+  {
+    id: 'captain_america',
+    name: 'Captain America',
+    anime: 'Marvel Avengers',
+    type: 'img',
+    sketchImg: 'assets/sketches/captain_america.png',
+    animeFont: "'Bangers', cursive",
+    animeFontSize: '1.0rem',
+  },
+  {
+    id: 'iron_man',
+    name: 'Iron Man',
+    anime: 'Marvel Avengers',
+    type: 'img',
+    sketchImg: 'assets/sketches/iron_man.png',
+    animeFont: "'Bangers', cursive",
+    animeFontSize: '1.0rem',
+  },
+  {
+    id: 'hulk',
+    name: 'The Hulk',
+    anime: 'Marvel Avengers',
+    type: 'img',
+    sketchImg: 'assets/sketches/hulk.png',
+    animeFont: "'Bangers', cursive",
+    animeFontSize: '1.15rem',
+  },
+  {
+    id: 'hulkbuster',
+    name: 'Hulkbuster',
+    anime: 'Marvel Avengers',
+    type: 'img',
+    sketchImg: 'assets/sketches/hulkbuster.png',
+    animeFont: "'Bangers', cursive",
+    animeFontSize: '1.0rem',
+  },
+  {
+    id: 'spider_man',
+    name: 'Spider-Man',
+    anime: 'Marvel Avengers',
+    type: 'img',
+    sketchImg: 'assets/sketches/spider_man.png',
+    animeFont: "'Bangers', cursive",
+    animeFontSize: '1.05rem',
+  },
+  {
+    id: 'black_widow',
+    name: 'Black Widow',
+    anime: 'Marvel Avengers',
+    type: 'img',
+    sketchImg: 'assets/sketches/black_widow.png',
+    animeFont: "'Bangers', cursive",
+    animeFontSize: '1.0rem',
+  },
+  {
+    id: 'thor',
+    name: 'Thor Odinson',
+    anime: 'Marvel Avengers',
+    type: 'img',
+    sketchImg: 'assets/sketches/thor.png',
+    animeFont: "'Bangers', cursive",
+    animeFontSize: '1.1rem',
+  },
 ];
 
-function getRandomQuote() {
-  return ANIME_QUOTES[Math.floor(Math.random() * ANIME_QUOTES.length)];
+// ─── Helper: Get random character ───
+function getRandomCharacter() {
+  return ANIME_CHARACTERS[Math.floor(Math.random() * ANIME_CHARACTERS.length)];
 }
+
+// ─── Helper: Get by ID ───
+function getCharacterById(id) {
+  return ANIME_CHARACTERS.find(c => c.id === id) || getRandomCharacter();
+}
+
+// ─── Helper: Build the background sketch HTML for bill ───
+function buildSketchHTML(character) {
+  if (character.type === 'img') {
+    return `<img
+      src="${character.sketchImg}"
+      alt="${character.name} sketch"
+      class="bill-sketch-img"
+      draggable="false"
+    >`;
+  } else {
+    // SVG fallback
+    return `<div class="bill-sketch-svg">${character.sketchSvg}</div>`;
+  }
+}
+
