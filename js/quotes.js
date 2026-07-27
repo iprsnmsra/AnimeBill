@@ -1,7 +1,7 @@
 // AnimeBill — Quotes Library
 // © AnimeBill by iprsnmsra | github.com/iprsnmsra
 
-const ANIME_QUOTES = [
+var ANIME_QUOTES = [
   // One Piece
   { text: "I'm going to be King of the Pirates!", emoji: "⚓", source: "Monkey D. Luffy — One Piece" },
   { text: "People's dreams never end!", emoji: "🔥", source: "Whitebeard — One Piece" },
@@ -53,6 +53,22 @@ const ANIME_QUOTES = [
   { text: "Even the greatest were once beginners. Don't be afraid to start.", emoji: "🌱", source: "Wisdom" },
   { text: "Without darkness, stars wouldn't shine as bright.", emoji: "⭐", source: "Reality" },
   { text: "Fear is not evil. It tells you what your weakness is.", emoji: "⚡", source: "Gildarts — Fairy Tail" },
+
+  // Marvel Avengers
+  { text: "I can do this all day.", emoji: "🛡️", source: "Captain America — Marvel" },
+  { text: "The price of freedom is high. It always has been. And it's a price I'm willing to pay.", emoji: "🇺🇸", source: "Captain America" },
+  { text: "I am Iron Man.", emoji: "⚙️", source: "Tony Stark — Iron Man" },
+  { text: "Part of the journey is the end.", emoji: "🔶", source: "Tony Stark — Avengers: Endgame" },
+  { text: "Genius. Billionaire. Playboy. Philanthropist.", emoji: "💡", source: "Tony Stark — Marvel" },
+  { text: "HULK SMASH!", emoji: "💚", source: "The Hulk — Marvel" },
+  { text: "That's my secret, Cap — I'm always angry.", emoji: "🟢", source: "Bruce Banner — The Avengers" },
+  { text: "With great power comes great responsibility.", emoji: "🕷️", source: "Spider-Man — Marvel" },
+  { text: "Whatever life holds in store for me, I will never forget these words.", emoji: "🕸️", source: "Spider-Man" },
+  { text: "Nothing will stop me from protecting my family.", emoji: "🖤", source: "Black Widow — Marvel" },
+  { text: "I'm always picking up after you boys.", emoji: "💥", source: "Natasha Romanoff — The Avengers" },
+  { text: "I am Thor Odinson of Asgard!", emoji: "⚡", source: "Thor — Marvel" },
+  { text: "Whosoever holds this hammer, if they be worthy, shall possess the power of Thor.", emoji: "🔨", source: "Thor — Marvel" },
+  { text: "The Hulkbuster exists for one reason only — to stop the unstoppable.", emoji: "🤖", source: "Tony Stark — Age of Ultron" },
 
   // Store-themed
   { text: "Thank you for choosing us! Your smile is our best reward! 🛍️", emoji: "🎉", source: "AnimeBill Store" },

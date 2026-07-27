@@ -8,7 +8,7 @@
 //   sketchImg  — path to a real B&W sketch PNG image
 //   sketchSvg  — inline SVG (fallback for remaining characters)
 
-const ANIME_CHARACTERS = [
+var ANIME_CHARACTERS = [
 
   // ══════════ ONE PIECE ══════════
   {
@@ -204,6 +204,144 @@ const ANIME_CHARACTERS = [
     sketchImg: 'assets/sketches/tanjiro.png',
     animeFont: "'Noto Serif JP', serif",
     animeFontSize: '0.85rem',
+  },
+
+  // ══════════ GTA V — AAA GAMES ══════════
+  {
+    id: 'michael',
+    name: 'Michael De Santa',
+    anime: 'GTA V',
+    type: 'img',
+    sketchImg: 'assets/sketches/michael.png',
+    animeFont: "'Bebas Neue', cursive",
+    animeFontSize: '1.1rem',
+  },
+  {
+    id: 'franklin',
+    name: 'Franklin Clinton',
+    anime: 'GTA V',
+    type: 'img',
+    sketchImg: 'assets/sketches/franklin.png',
+    animeFont: "'Bebas Neue', cursive",
+    animeFontSize: '1.1rem',
+  },
+  {
+    id: 'trevor',
+    name: 'Trevor Philips',
+    anime: 'GTA V',
+    type: 'img',
+    sketchImg: 'assets/sketches/trevor.png',
+    animeFont: "'Bebas Neue', cursive",
+    animeFontSize: '1.1rem',
+  },
+
+  // ══════════ CALL OF DUTY ══════════
+  {
+    id: 'ghost',
+    name: 'Simon "Ghost" Riley',
+    anime: 'Call of Duty',
+    type: 'img',
+    sketchImg: 'assets/sketches/ghost.png',
+    animeFont: "'Russo One', sans-serif",
+    animeFontSize: '0.82rem',
+  },
+
+  // ══════════ RESIDENT EVIL ══════════
+  {
+    id: 'leon',
+    name: 'Leon S. Kennedy',
+    anime: 'Resident Evil',
+    type: 'img',
+    sketchImg: 'assets/sketches/leon.png',
+    animeFont: "'Special Elite', cursive",
+    animeFontSize: '0.78rem',
+  },
+
+  // ══════════ GOD OF WAR ══════════
+  {
+    id: 'kratos',
+    name: 'Kratos',
+    anime: 'God of War',
+    type: 'img',
+    sketchImg: 'assets/sketches/kratos.png',
+    animeFont: "'Russo One', sans-serif",
+    animeFontSize: '0.88rem',
+  },
+
+  // ══════════ RED DEAD REDEMPTION 2 ══════════
+  {
+    id: 'arthur',
+    name: 'Arthur Morgan',
+    anime: 'Red Dead Redemption 2',
+    type: 'img',
+    sketchImg: 'assets/sketches/arthur.png',
+    animeFont: "'Special Elite', cursive",
+    animeFontSize: '0.7rem',
+  },
+
+  // ══════════ MARVEL AVENGERS ══════════
+  {
+    id: 'captain_america',
+    name: 'Captain America',
+    anime: 'Marvel Avengers',
+    type: 'img',
+    sketchImg: 'assets/sketches/captain_america.png',
+    animeFont: "'Bangers', cursive",
+    animeFontSize: '1.0rem',
+  },
+  {
+    id: 'iron_man',
+    name: 'Iron Man',
+    anime: 'Marvel Avengers',
+    type: 'img',
+    sketchImg: 'assets/sketches/iron_man.png',
+    animeFont: "'Bangers', cursive",
+    animeFontSize: '1.0rem',
+  },
+  {
+    id: 'hulk',
+    name: 'The Hulk',
+    anime: 'Marvel Avengers',
+    type: 'img',
+    sketchImg: 'assets/sketches/hulk.png',
+    animeFont: "'Bangers', cursive",
+    animeFontSize: '1.15rem',
+  },
+  {
+    id: 'hulkbuster',
+    name: 'Hulkbuster',
+    anime: 'Marvel Avengers',
+    type: 'img',
+    sketchImg: 'assets/sketches/hulkbuster.png',
+    animeFont: "'Bangers', cursive",
+    animeFontSize: '1.0rem',
+  },
+  {
+    id: 'spider_man',
+    name: 'Spider-Man',
+    anime: 'Marvel Avengers',
+    type: 'img',
+    sketchImg: 'assets/sketches/spider_man.png',
+    animeFont: "'Bangers', cursive",
+    animeFontSize: '1.05rem',
+  },
+  {
+    id: 'black_widow',
+    name: 'Black Widow',
+    anime: 'Marvel Avengers',
+    type: 'img',
+    sketchImg: 'assets/sketches/black_widow.png',
+    animeFont: "'Bangers', cursive",
+    animeFontSize: '1.0rem',
+  },
+  {
+    id: 'thor',
+    name: 'Thor Odinson',
+    anime: 'Marvel Avengers',
+    type: 'img',
+    sketchImg: 'assets/sketches/thor.png',
+    animeFont: "'Bangers', cursive",
+    animeFontSize: '1.1rem',
   },
 ];
 
