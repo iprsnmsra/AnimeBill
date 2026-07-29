@@ -82,3 +82,5 @@ var ANIME_QUOTES = [
 function getRandomQuote() {
   return ANIME_QUOTES[Math.floor(Math.random() * ANIME_QUOTES.length)];
 }
+
+

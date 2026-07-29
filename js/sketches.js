@@ -369,3 +369,4 @@ function buildSketchHTML(character) {
     return `<div class="bill-sketch-svg">${character.sketchSvg}</div>`;
   }
 }
+

@@ -1,7 +1,7 @@
 # 🎌 AnimeBill — Anime-Themed E-Bill Generator
 
-> **Bills that make people smile!**  
-> Every receipt contains a random anime character sketch — invisible enough to keep it professional, visible enough to surprise and delight! ✨
+> **Bills that make people smile!!**  
+> Every receipt contains a random anime character sketch — invisible enough to keep it professional, visible enough to surprise and delight! 
 
 [![GitHub](https://img.shields.io/badge/GitHub-iprsnmsra-181717?style=flat&logo=github)](https://github.com/iprsnmsra)
 [![Version](https://img.shields.io/badge/Version-1.0.0-6c63ff?style=flat)]()
@@ -10,7 +10,7 @@
 
 ---
 
-## ✨ What is AnimeBill?
+## What is AnimeBill?
 
 **AnimeBill** is a free, open-source e-bill generator for:
 - 🏪 Retail shops & stores
@@ -38,7 +38,7 @@ Each bill is **unique** — with a randomly selected anime character sketch fain
 
 ---
 
-## 🚀 Quick Start
+## // Quick Start
 
 ### Option 1 — Open Directly (Recommended)
 ```bash
@@ -67,12 +67,12 @@ npx serve .
 2. **Select Currency** — ₹ INR | $ USD | € EUR | £ GBP | ¥ JPY | ₩ KRW
 3. **Add Items** — Name, quantity, price
 4. **Choose Character** — Pick one or let it randomize!
-5. **Click ⚡ Generate Bill**
+5. **Click Generate Bill**
 6. **Print or Save PNG**
 
 ---
 
-## 💡 Bill Features
+##  = Bill Features
 
 | Feature | Details |
 |---------|---------|
@@ -88,7 +88,7 @@ npx serve .
 
 ---
 
-## 🎨 Anime Title Fonts Used
+## Anime Title Fonts Used !!
 
 | Anime | Font |
 |-------|------|
@@ -147,7 +147,7 @@ downloadPNG();  // saves as PNG
 
 ---
 
-## 🪪 License
+## License/
 
 ```
 MIT License
@@ -158,11 +158,11 @@ of this software to use, copy, modify, merge, publish, and distribute.
 
 ---
 
-## 👤 Author
+## Author/
 
 **iprsnmsra** — [@iprsnmsra](https://github.com/iprsnmsra)
 
-> *"Making bills as exciting as a new anime arc!"* 🎌⚓
+> *"Making bills as exciting as a new anime arc!"* 🎌
 
 ---
 
