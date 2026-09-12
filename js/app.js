@@ -352,6 +352,22 @@ function renderBillHTML(data, billNo, character, quote) {
 // GENERATE BILL
 // ──────────────────────────────────────────────────────
 
+function preloadImages() {
+  setTimeout(function() {
+    if (typeof ANIME_CHARACTERS !== 'undefined') {
+      ANIME_CHARACTERS.forEach(function(c) {
+        if (c.type === 'img' && c.sketchImg) {
+          var img = new Image();
+          img.src = c.sketchImg;
+        }
+      });
+    }
+  }, 1000);
+}
+
+// Call preload on load
+document.addEventListener('DOMContentLoaded', preloadImages);
+
 function generateBill() {
   const data = collectFormData();
   if (!data.items.length) {
@@ -359,11 +375,15 @@ function generateBill() {
     return;
   }
 
-  currentCharacter = getRandomCharacter();
-  currentQuote     = getRandomQuote();
-  currentBillNo    = generateBillNo();
-
-  document.getElementById('characterSelect').value = currentCharacter.id;
+  if (!currentCharacter) {
+    currentCharacter = getRandomCharacter();
+    document.getElementById('characterSelect').value = currentCharacter.id;
+  }
+  if (!currentQuote) currentQuote = getRandomQuote();
+  
+  // Only generate a new bill number if it's not already generated, or always generate a new one?
+  // Usually generating a bill generates a new number if we are making a new bill. Let's just generate a new one.
+  currentBillNo = generateBillNo();
 
   const wrapper = document.getElementById('billWrapper');
   wrapper.innerHTML = renderBillHTML(data, currentBillNo, currentCharacter, currentQuote);
@@ -374,8 +394,8 @@ function generateBill() {
 }
 
 async function saveBillToCloud() {
-  // Check if DB is available and user is logged in
-  if (!DB || !Auth.currentUser) return;
+  if (!Auth.currentUser) return; // Need to be logged in (even offline) to save bills
+
   try {
     var userId = Auth.currentUser.id;
     var data = collectFormData();
@@ -388,12 +408,59 @@ async function saveBillToCloud() {
       currencyCode: selectedCurrencyCode,
       currencySymbol: selectedCurrencySymbol
     };
-    var result = await DB.saveBill(userId, billData, data.items, currentCharacter, currentQuote);
-    if (result.ok) {
-      showToast('☁️ Bill saved to cloud!');
+
+    // Calculate totals
+    var subtotal = 0, totalGst = 0;
+    data.items.forEach(function(item) {
+      var lineAmt = item.qty * item.price;
+      subtotal += lineAmt;
+      totalGst += lineAmt * (item.gst || 0) / 100;
+    });
+    var grandTotal = subtotal + totalGst;
+    var itemCount  = data.items.reduce(function (a, i) { return a + i.qty; }, 0);
+
+    // 1. Cloud Mode (Supabase)
+    if (Auth.isCloud) {
+      var result = await DB.saveBill(userId, billData, data.items, currentCharacter, currentQuote);
+      if (result.ok) {
+        console.log('[AnimeBill] Bill saved to cloud.');
+      }
+    } 
+    // 2. Offline Mode (localStorage)
+    else {
+      var offlineBills = JSON.parse(localStorage.getItem('animebill_offline_bills') || '[]');
+      
+      var newBill = {
+        id: 'off_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5),
+        user_id: userId,
+        bill_no: billData.billNo,
+        shop_name: billData.shopName,
+        currency_code: billData.currencyCode,
+        currency_symbol: billData.currencySymbol,
+        subtotal: subtotal,
+        total_gst: totalGst,
+        grand_total: grandTotal,
+        item_count: itemCount,
+        character_name: currentCharacter ? currentCharacter.name : null,
+        anime_name: currentCharacter ? currentCharacter.anime : null,
+        created_at: new Date().toISOString(),
+        items: data.items.map(function(item) {
+           return {
+             name: item.name,
+             qty: item.qty,
+             price: item.price,
+             gst_rate: item.gst || 0,
+             line_total: item.qty * item.price
+           };
+        })
+      };
+      
+      offlineBills.push(newBill);
+      localStorage.setItem('animebill_offline_bills', JSON.stringify(offlineBills));
+      console.log('[AnimeBill] Bill saved locally (offline mode).');
     }
   } catch (err) {
-    console.error('[AnimeBill] Cloud save error:', err);
+    console.error('[AnimeBill] Bill save error:', err);
   }
 }
 

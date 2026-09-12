@@ -1,5 +1,6 @@
 // ═══════════════════════════════════════════════════════
 // AnimeBill — Dashboard Script (Bill History)
+// Supports both Supabase Cloud & Offline LocalStorage
 // © AnimeBill by iprsnmsra | github.com/iprsnmsra
 // ═══════════════════════════════════════════════════════
 
@@ -13,24 +14,18 @@ var currentSortBy = 'created_at';
 var currentSortDir = false; // false = DESC
 
 document.addEventListener('DOMContentLoaded', async function () {
-  if (!window.DB) {
-    showToast('⚠️ Supabase not configured — cloud features unavailable');
+  // Wait for Auth to initialize (it does so on DOMContentLoaded too, but this is safer)
+  await Auth.init();
+  
+  if (!Auth.currentUser) {
     showLoginRequired();
     return;
   }
 
-  var session = await DB.getSession();
-  if (!session || !session.user) {
-    showLoginRequired();
-    return;
-  }
+  currentUser = Auth.currentUser.id;
 
-  currentUser = session.user.id;
-
-  // Auth zone
-  var authZone = document.getElementById('authZone');
-  if (authZone) {
-    authZone.innerHTML = '<span class="user-email">' + escHtml(session.user.email) + '</span>';
+  if (!Auth.isCloud) {
+    showToast('⚠️ Running in offline mode — bills saved locally on this device only.');
   }
 
   setupEvents();
@@ -59,7 +54,7 @@ function setupEvents() {
     searchInput.addEventListener('input', function (e) {
       clearTimeout(searchTimeout);
       searchTimeout = setTimeout(function () {
-        currentSearch = e.target.value;
+        currentSearch = e.target.value.toLowerCase();
         currentPage = 1;
         loadBills(currentUser, currentPage, currentSearch, currentSortBy, currentSortDir);
       }, 400);
@@ -120,28 +115,137 @@ function setupEvents() {
 }
 
 // ────────────────────────────────────────────────────
+// DATA API (Abstracts Cloud vs Offline)
+// ────────────────────────────────────────────────────
+
+var DataAPI = {
+  async getStats(userId) {
+    if (Auth.isCloud) return await DB.getStats(userId);
+    
+    // Offline logic
+    var bills = getOfflineBills(userId);
+    var stats = {
+      total_bills: bills.length,
+      total_revenue: 0,
+      avg_bill_value: 0,
+      fav_character: '—'
+    };
+    if (bills.length === 0) return stats;
+    
+    var chars = {};
+    bills.forEach(function(b) {
+      stats.total_revenue += b.grand_total;
+      if (b.character_name) chars[b.character_name] = (chars[b.character_name] || 0) + 1;
+    });
+    stats.avg_bill_value = stats.total_revenue / bills.length;
+    
+    var topChar = '—', maxC = 0;
+    for (var c in chars) { if (chars[c] > maxC) { topChar = c; maxC = chars[c]; } }
+    stats.fav_character = topChar;
+    
+    return stats;
+  },
+
+  async getBills(userId, opts) {
+    if (Auth.isCloud) return await DB.getBills(userId, opts);
+    
+    // Offline logic
+    var bills = getOfflineBills(userId);
+    
+    if (opts.search) {
+      bills = bills.filter(function(b) {
+        return (b.bill_no && b.bill_no.toLowerCase().includes(opts.search)) ||
+               (b.shop_name && b.shop_name.toLowerCase().includes(opts.search)) ||
+               (b.character_name && b.character_name.toLowerCase().includes(opts.search));
+      });
+    }
+    
+    bills.sort(function(a, b) {
+      var valA = a[opts.sortBy], valB = b[opts.sortBy];
+      if (opts.sortBy === 'created_at') {
+        valA = new Date(valA).getTime();
+        valB = new Date(valB).getTime();
+      }
+      if (valA < valB) return opts.sortDir ? -1 : 1;
+      if (valA > valB) return opts.sortDir ? 1 : -1;
+      return 0;
+    });
+    
+    var total = bills.length;
+    var totalPages = Math.ceil(total / opts.pageSize) || 1;
+    var from = (opts.page - 1) * opts.pageSize;
+    var to = from + opts.pageSize;
+    var paged = bills.slice(from, to);
+    
+    return { bills: paged, total: total, page: opts.page, pageSize: opts.pageSize, totalPages: totalPages };
+  },
+
+  async getBillWithItems(billId) {
+    if (Auth.isCloud) return await DB.getBillWithItems(billId);
+    
+    // Offline logic
+    var all = JSON.parse(localStorage.getItem('animebill_offline_bills') || '[]');
+    var bill = all.find(function(b) { return b.id === billId; });
+    if (!bill) return null;
+    return { bill: bill, items: bill.items || [] };
+  },
+
+  async deleteBill(billId) {
+    if (Auth.isCloud) return await DB.deleteBill(billId);
+    
+    // Offline logic
+    var all = JSON.parse(localStorage.getItem('animebill_offline_bills') || '[]');
+    var filtered = all.filter(function(b) { return b.id !== billId; });
+    localStorage.setItem('animebill_offline_bills', JSON.stringify(filtered));
+    return { ok: true };
+  },
+
+  async exportBillsCSV(userId) {
+    if (Auth.isCloud) return await DB.exportBillsCSV(userId);
+    
+    // Offline logic
+    var bills = getOfflineBills(userId);
+    if (bills.length === 0) return null;
+    
+    var headers = ['Bill No', 'Shop Name', 'Grand Total', 'Items', 'Currency', 'Character', 'Anime', 'Date'];
+    var rows = bills.map(function(b) {
+      return [
+        b.bill_no,
+        '"' + (b.shop_name || '').replace(/"/g, '""') + '"',
+        b.grand_total,
+        b.item_count,
+        b.currency_code,
+        b.character_name || '',
+        b.anime_name || '',
+        new Date(b.created_at).toLocaleDateString()
+      ].join(',');
+    });
+    return headers.join(',') + '\\n' + rows.join('\\n');
+  }
+};
+
+function getOfflineBills(userId) {
+  var all = JSON.parse(localStorage.getItem('animebill_offline_bills') || '[]');
+  return all.filter(function(b) { return b.user_id === userId; });
+}
+
+// ────────────────────────────────────────────────────
 // STATS
 // ────────────────────────────────────────────────────
 
 async function loadStats(userId) {
   try {
-    var stats = await DB.getStats(userId);
+    var stats = await DataAPI.getStats(userId);
     animateValue('statTotalBills', 0, stats.total_bills || 0, 800);
 
     var revenueEl = document.getElementById('statRevenue');
-    if (revenueEl) {
-      revenueEl.textContent = fmtCurrency(stats.total_revenue || 0, '₹');
-    }
+    if (revenueEl) revenueEl.textContent = fmtCurrency(stats.total_revenue || 0, '₹');
 
     var avgEl = document.getElementById('statAvgBill');
-    if (avgEl) {
-      avgEl.textContent = fmtCurrency(stats.avg_bill_value || 0, '₹');
-    }
+    if (avgEl) avgEl.textContent = fmtCurrency(stats.avg_bill_value || 0, '₹');
 
     var favEl = document.getElementById('statFavChar');
-    if (favEl) {
-      favEl.textContent = stats.fav_character || '—';
-    }
+    if (favEl) favEl.textContent = stats.fav_character || '—';
   } catch (err) {
     console.error('[Dashboard] Stats error:', err);
   }
@@ -159,7 +263,7 @@ async function loadBills(userId, page, search, sortBy, sortDir) {
   if (!grid) return;
 
   try {
-    var response = await DB.getBills(userId, {
+    var response = await DataAPI.getBills(userId, {
       page:     page,
       pageSize: pageSize,
       search:   search,
@@ -239,7 +343,7 @@ async function loadBills(userId, page, search, sortBy, sortDir) {
 
 async function viewBill(billId) {
   try {
-    var data = await DB.getBillWithItems(billId);
+    var data = await DataAPI.getBillWithItems(billId);
     if (!data || !data.bill) {
       showToast('Bill not found');
       return;
@@ -303,7 +407,7 @@ async function deleteBillConfirm(billId) {
   if (!confirm('⚠️ Delete this bill? This cannot be undone.')) return;
 
   try {
-    var res = await DB.deleteBill(billId);
+    var res = await DataAPI.deleteBill(billId);
     if (res && res.ok) {
       showToast('🗑️ Bill deleted');
       loadStats(currentUser);
@@ -324,7 +428,7 @@ async function deleteBillConfirm(billId) {
 async function exportCSV() {
   if (!currentUser) return;
   try {
-    var csv = await DB.exportBillsCSV(currentUser);
+    var csv = await DataAPI.exportBillsCSV(currentUser);
     if (!csv) {
       showToast('No bills to export');
       return;
