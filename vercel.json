@@ -9,6 +9,10 @@
   ],
   "routes": [
     {
+      "src": "/history",
+      "dest": "/history.html"
+    },
+    {
       "src": "/(.*)",
       "dest": "/$1"
     }

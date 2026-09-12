@@ -1,6 +1,6 @@
 // ═══════════════════════════════════════════════════════
-// AnimeBill — Auth System (localStorage-based)
-// Accounts + Shop Profile saved per user, per device
+// AnimeBill — Auth System (Supabase + localStorage fallback)
+// Accounts + Shop Profile saved in Cloud or per device
 // © AnimeBill by iprsnmsra | github.com/iprsnmsra
 // ═══════════════════════════════════════════════════════
 
@@ -37,78 +37,149 @@ function saveSession(user) {
 // ─── Auth API ───
 const Auth = {
   currentUser: null,
+  get isCloud() {
+    return typeof DB !== 'undefined' && DB !== null;
+  },
 
-  init() {
-    const session = getSession();
-    if (session) {
-      const users = getUsers();
-      const user  = users.find(u => u.id === session.id);
-      if (user) {
-        this.currentUser = user;
-        this._onLogin(user);
-      } else {
-        saveSession(null);
+  async init() {
+    if (this.isCloud) {
+      const session = await DB.getSession();
+      if (session && session.user) {
+        const profile = await DB.getProfile(session.user.id);
+        this.currentUser = {
+          id: session.user.id,
+          email: session.user.email,
+          name: session.user.user_metadata?.name || 'User',
+          profile: profile || { shopName: (session.user.user_metadata?.name || 'User') + "'s Store", address: '', phone: '', gstin: '' }
+        };
+        this._onLogin(this.currentUser);
+      }
+      DB.onAuthStateChange(async (user, event) => {
+        if (event === 'SIGNED_OUT') {
+          this.currentUser = null;
+          this._renderHeader();
+        }
+      });
+    } else {
+      const session = getSession();
+      if (session) {
+        const users = getUsers();
+        const user  = users.find(u => u.id === session.id);
+        if (user) {
+          this.currentUser = user;
+          this._onLogin(user);
+        } else {
+          saveSession(null);
+        }
       }
     }
     this._renderHeader();
   },
 
-  register(email, password, name) {
+  async register(email, password, name) {
     email = email.trim().toLowerCase();
     name  = name.trim();
     if (!email || !password || !name) return { ok: false, msg: 'All fields are required.' };
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return { ok: false, msg: 'Enter a valid email address.' };
     if (password.length < 6) return { ok: false, msg: 'Password must be at least 6 characters.' };
 
-    const users = getUsers();
-    if (users.find(u => u.email === email)) return { ok: false, msg: 'This email is already registered.' };
+    if (this.isCloud) {
+      const result = await DB.signUp(email, password, name);
+      if (result.ok) {
+        // Automatically set current user if signup also logs them in
+        if (result.session && result.session.user) {
+           const profile = await DB.getProfile(result.session.user.id);
+           this.currentUser = {
+             id: result.session.user.id,
+             email: result.session.user.email,
+             name: result.session.user.user_metadata?.name || name,
+             profile: profile || { shopName: name + "'s Store", address: '', phone: '', gstin: '' }
+           };
+           this._onLogin(this.currentUser);
+           this._renderHeader();
+        }
+      }
+      return result;
+    } else {
+      const users = getUsers();
+      if (users.find(u => u.email === email)) return { ok: false, msg: 'This email is already registered.' };
 
-    const user = {
-      id:      'u_' + Date.now().toString(36),
-      email,
-      name,
-      passwordHash: simpleHash(password),
-      profile: { shopName: name + "'s Store", address: '', phone: '', gstin: '' },
-      createdAt: new Date().toISOString(),
-    };
-    users.push(user);
-    saveUsers(users);
-    this.currentUser = user;
-    saveSession(user);
-    this._onLogin(user);
-    this._renderHeader();
-    return { ok: true };
+      const user = {
+        id:      'u_' + Date.now().toString(36),
+        email,
+        name,
+        passwordHash: simpleHash(password),
+        profile: { shopName: name + "'s Store", address: '', phone: '', gstin: '' },
+        createdAt: new Date().toISOString(),
+      };
+      users.push(user);
+      saveUsers(users);
+      this.currentUser = user;
+      saveSession(user);
+      this._onLogin(user);
+      this._renderHeader();
+      return { ok: true };
+    }
   },
 
-  login(email, password) {
+  async login(email, password) {
     email = email.trim().toLowerCase();
-    const users = getUsers();
-    const user  = users.find(u => u.email === email);
-    if (!user) return { ok: false, msg: 'No account found with this email.' };
-    if (user.passwordHash !== simpleHash(password)) return { ok: false, msg: 'Incorrect password.' };
-    this.currentUser = user;
-    saveSession(user);
-    this._onLogin(user);
-    this._renderHeader();
-    return { ok: true };
+    
+    if (this.isCloud) {
+      const result = await DB.signIn(email, password);
+      if (result.ok && result.session && result.session.user) {
+        const profile = await DB.getProfile(result.session.user.id);
+        this.currentUser = {
+          id: result.session.user.id,
+          email: result.session.user.email,
+          name: result.session.user.user_metadata?.name || 'User',
+          profile: profile || { shopName: (result.session.user.user_metadata?.name || 'User') + "'s Store", address: '', phone: '', gstin: '' }
+        };
+        this._onLogin(this.currentUser);
+        this._renderHeader();
+      }
+      return result;
+    } else {
+      const users = getUsers();
+      const user  = users.find(u => u.email === email);
+      if (!user) return { ok: false, msg: 'No account found with this email.' };
+      if (user.passwordHash !== simpleHash(password)) return { ok: false, msg: 'Incorrect password.' };
+      this.currentUser = user;
+      saveSession(user);
+      this._onLogin(user);
+      this._renderHeader();
+      return { ok: true };
+    }
   },
 
-  logout() {
+  async logout() {
+    if (this.isCloud) {
+      await DB.signOut();
+    } else {
+      saveSession(null);
+    }
     this.currentUser = null;
-    saveSession(null);
     this._renderHeader();
     showToast('👋 Logged out successfully!');
   },
 
-  saveProfile(profile) {
+  async saveProfile(profile) {
     if (!this.currentUser) return;
-    const users = getUsers();
-    const idx   = users.findIndex(u => u.id === this.currentUser.id);
-    if (idx === -1) return;
-    users[idx].profile = { ...users[idx].profile, ...profile };
-    this.currentUser   = users[idx];
-    saveUsers(users);
-    saveSession(this.currentUser);
+    
+    if (this.isCloud) {
+      const result = await DB.updateProfile(this.currentUser.id, profile);
+      if (result && result.ok) {
+        this.currentUser.profile = { ...this.currentUser.profile, ...profile };
+      }
+    } else {
+      const users = getUsers();
+      const idx   = users.findIndex(u => u.id === this.currentUser.id);
+      if (idx === -1) return;
+      users[idx].profile = { ...users[idx].profile, ...profile };
+      this.currentUser   = users[idx];
+      saveUsers(users);
+      saveSession(this.currentUser);
+    }
     showToast('💾 Profile saved! It will auto-fill next time.');
   },
 
@@ -214,10 +285,10 @@ function showAuthError(msg) {
   if (el) { el.textContent = msg; el.style.display = 'block'; }
 }
 
-function doLogin() {
+async function doLogin() {
   const email    = document.getElementById('authLoginEmail').value;
   const password = document.getElementById('authLoginPassword').value;
-  const result   = Auth.login(email, password);
+  const result   = await Auth.login(email, password);
   if (result.ok) {
     closeAuthModal();
   } else {
@@ -225,11 +296,11 @@ function doLogin() {
   }
 }
 
-function doRegister() {
+async function doRegister() {
   const name     = document.getElementById('authName').value;
   const email    = document.getElementById('authEmail').value;
   const password = document.getElementById('authPassword').value;
-  const result   = Auth.register(email, password, name);
+  const result   = await Auth.register(email, password, name);
   if (result.ok) {
     closeAuthModal();
   } else {

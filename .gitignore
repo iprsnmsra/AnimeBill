@@ -7,3 +7,6 @@ npm-debug.log*
 .env.local
 Thumbs.db
 *.tmp
+
+# Supabase credentials (never commit real keys)
+js/config.js

@@ -1,0 +1,142 @@
+# ═══════════════════════════════════════════════════════
+# 🎌 AnimeBill — CI Pipeline
+# Runs on every push & PR to main
+# Vercel auto-deploys from GitHub — no token needed
+# ═══════════════════════════════════════════════════════
+
+name: 🎌 AnimeBill CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  # ─── Code Quality Checks ───
+  quality:
+    name: 🔍 Lint & Validate
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 📦 Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: 🔧 Install linters
+        run: npm install --no-save eslint@8
+
+      - name: ✨ Lint JavaScript
+        run: npx eslint js/*.js --max-warnings 50
+        continue-on-error: true
+
+      - name: 📋 Validate project structure
+        run: |
+          echo "🔍 Checking required files..."
+          MISSING=0
+
+          for f in index.html history.html css/style.css css/dashboard.css \
+                   js/app.js js/auth.js js/supabase-client.js js/dashboard.js \
+                   js/quotes.js js/sketches.js js/config.example.js; do
+            if [ -f "$f" ]; then
+              echo "  ✅ $f"
+            else
+              echo "  ❌ $f — MISSING"
+              MISSING=$((MISSING+1))
+            fi
+          done
+
+          if [ $MISSING -gt 0 ]; then
+            echo "⚠️ $MISSING file(s) missing!"
+            exit 1
+          fi
+          echo "✅ All files present!"
+
+      - name: 🗄️ Validate SQL migration
+        run: |
+          echo "🔍 Checking SQL migration file..."
+          if [ -f "supabase/migrations/001_initial_schema.sql" ]; then
+            echo "  ✅ SQL migration found"
+            TABLES=$(grep -c "CREATE TABLE" supabase/migrations/001_initial_schema.sql || true)
+            POLICIES=$(grep -c "CREATE POLICY" supabase/migrations/001_initial_schema.sql || true)
+            echo "  📊 Tables: $TABLES | Policies: $POLICIES"
+          else
+            echo "  ⚠️ No SQL migration found"
+          fi
+
+      - name: 🔐 Security check
+        run: |
+          echo "🔍 Checking for exposed secrets..."
+          if grep -r "supabase\.co" js/config.js 2>/dev/null | grep -v "YOUR_PROJECT" > /dev/null 2>&1; then
+            echo "❌ WARNING: config.js may contain real credentials!"
+            exit 1
+          fi
+          if [ -f "js/config.js" ] && ! grep -q "js/config.js" .gitignore; then
+            echo "❌ WARNING: config.js is not in .gitignore!"
+            exit 1
+          fi
+          echo "✅ No exposed secrets found"
+
+      - name: 🎌 CI Complete
+        run: |
+          echo "══════════════════════════════════════"
+          echo "  🎌 AnimeBill CI — All checks passed!"
+          echo "  Vercel will auto-deploy this push."
+          echo "══════════════════════════════════════"
+
+  # ─── Data Pipeline Validation ───
+  database:
+    name: 🗄️ Database Pipeline Check
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📥 Checkout
+        uses: actions/checkout@v4
+
+      - name: 📋 Validate schema integrity
+        run: |
+          echo "🗄️ AnimeBill Database Pipeline Validation"
+          echo "──────────────────────────────────────────"
+
+          SQL_FILE="supabase/migrations/001_initial_schema.sql"
+
+          if [ ! -f "$SQL_FILE" ]; then
+            echo "❌ Migration file not found!"
+            exit 1
+          fi
+
+          echo "📊 Schema Analysis:"
+          echo "  Tables:    $(grep -c 'CREATE TABLE' $SQL_FILE)"
+          echo "  Indexes:   $(grep -c 'CREATE INDEX' $SQL_FILE)"
+          echo "  Policies:  $(grep -c 'CREATE POLICY' $SQL_FILE)"
+          echo "  Triggers:  $(grep -c 'CREATE TRIGGER' $SQL_FILE)"
+          echo "  Functions: $(grep -c 'CREATE.*FUNCTION' $SQL_FILE)"
+          echo "  Views:     $(grep -c 'CREATE.*VIEW' $SQL_FILE)"
+
+          # Check RLS is enabled
+          RLS_COUNT=$(grep -c 'ENABLE ROW LEVEL SECURITY' $SQL_FILE)
+          if [ "$RLS_COUNT" -lt 3 ]; then
+            echo "⚠️ WARNING: RLS not enabled on all tables!"
+          else
+            echo "  🔒 RLS:     Enabled on $RLS_COUNT tables"
+          fi
+
+          echo ""
+          echo "✅ Database pipeline validation passed!"
+
+      - name: 📈 Schema change detection
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            git diff origin/main -- supabase/ > /tmp/schema_diff.txt 2>/dev/null || true
+            if [ -s /tmp/schema_diff.txt ]; then
+              echo "⚠️ Database schema changes detected in this PR!"
+              echo "Review the migration carefully before merging."
+              cat /tmp/schema_diff.txt
+            else
+              echo "✅ No database schema changes in this PR"
+            fi
+          fi

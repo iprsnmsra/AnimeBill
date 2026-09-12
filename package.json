@@ -16,6 +16,8 @@
   "scripts": {
     "start":       "electron .",
     "dev":         "electron . --dev",
+    "lint":        "eslint js/*.js",
+    "ci":          "npm run lint",
     "build":       "electron-builder build --win --publish never",
     "build:all":   "electron-builder build --win --mac --linux --publish never",
     "build:mac":   "electron-builder build --mac --publish never",
@@ -24,7 +26,8 @@
   },
   "devDependencies": {
     "electron":         "^29.0.0",
-    "electron-builder": "^24.13.0"
+    "electron-builder": "^24.13.0",
+    "eslint":           "^8.57.0"
   },
   "build": {
     "appId":       "com.iprsnmsra.animebill",

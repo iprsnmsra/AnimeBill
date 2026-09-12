@@ -370,6 +370,31 @@ function generateBill() {
   billGenerated = true;
 
   showToast(`⚡ Bill generated! ${currentCharacter.name} appears today!`);
+  saveBillToCloud();
+}
+
+async function saveBillToCloud() {
+  // Check if DB is available and user is logged in
+  if (!DB || !Auth.currentUser) return;
+  try {
+    var userId = Auth.currentUser.id;
+    var data = collectFormData();
+    var billData = {
+      billNo: currentBillNo,
+      shopName: data.shopName,
+      shopAddress: data.shopAddress,
+      shopPhone: data.shopPhone,
+      gstin: data.gstin,
+      currencyCode: selectedCurrencyCode,
+      currencySymbol: selectedCurrencySymbol
+    };
+    var result = await DB.saveBill(userId, billData, data.items, currentCharacter, currentQuote);
+    if (result.ok) {
+      showToast('☁️ Bill saved to cloud!');
+    }
+  } catch (err) {
+    console.error('[AnimeBill] Cloud save error:', err);
+  }
 }
 
 function liveUpdate() {

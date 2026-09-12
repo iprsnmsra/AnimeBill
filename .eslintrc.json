@@ -1,0 +1,59 @@
+{
+  "env": {
+    "browser": true,
+    "es2020": true
+  },
+  "parserOptions": {
+    "ecmaVersion": 2020,
+    "sourceType": "script"
+  },
+  "globals": {
+    "ANIME_CHARACTERS": "readonly",
+    "ANIME_QUOTES": "readonly",
+    "html2canvas": "readonly",
+    "supabase": "readonly",
+    "SUPABASE_URL": "readonly",
+    "SUPABASE_ANON_KEY": "readonly",
+    "DB": "writable",
+    "Auth": "writable",
+    "getRandomCharacter": "readonly",
+    "getCharacterById": "readonly",
+    "getRandomQuote": "readonly",
+    "buildSketchHTML": "readonly",
+    "showToast": "readonly",
+    "liveUpdate": "readonly",
+    "updatePreview": "readonly",
+    "generateBill": "readonly",
+    "printBill": "readonly",
+    "downloadPNG": "readonly",
+    "selectCurrency": "readonly",
+    "addItem": "readonly",
+    "removeItem": "readonly",
+    "randomizeCharacter": "readonly",
+    "selectCharacter": "readonly",
+    "openAuthModal": "readonly",
+    "closeAuthModal": "readonly",
+    "switchAuthTab": "readonly",
+    "doLogin": "readonly",
+    "doRegister": "readonly",
+    "escHtml": "readonly",
+    "escAttr": "readonly",
+    "fmt": "readonly",
+    "collectFormData": "readonly",
+    "billGenerated": "writable",
+    "currentBillNo": "writable",
+    "currentCharacter": "writable",
+    "currentQuote": "writable",
+    "selectedCurrencySymbol": "writable",
+    "selectedCurrencyCode": "writable"
+  },
+  "rules": {
+    "no-unused-vars": ["warn", { "args": "none", "varsIgnorePattern": "^_" }],
+    "no-undef": "warn",
+    "semi": ["warn", "always"],
+    "no-console": "off",
+    "no-empty": "warn",
+    "no-redeclare": "warn",
+    "eqeqeq": ["warn", "smart"]
+  }
+}
