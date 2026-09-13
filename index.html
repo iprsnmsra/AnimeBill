@@ -19,8 +19,9 @@
   <link rel="stylesheet" href="css/style.css">
   <link rel="stylesheet" href="css/intro.css">
 
-  <!-- html2canvas — MUST load synchronously for PNG export -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <!-- html2canvas — deferred since it's only needed on PNG export click -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" defer></script>
+
 
   <!-- App Icon (emoji fallback) -->
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎌</text></svg>">
@@ -221,16 +222,33 @@
   <script src="js/supabase-client.js"></script>
   <script src="js/quotes.js"></script>
   <script src="js/sketches.js"></script>
-  <!-- Preload ALL character images immediately after sketches.js so they are cached on first Generate click -->
+  <!-- Preload remaining images lazily during browser idle time — doesn't block page -->
   <script>
     (function() {
       if (typeof ANIME_CHARACTERS === 'undefined') return;
-      ANIME_CHARACTERS.forEach(function(c) {
-        if (c.type === 'img' && c.sketchImg) {
-          var img = new Image();
-          img.src = c.sketchImg;
-        }
+      // First 5 already preloaded via <link rel="preload"> in <head>
+      // Load the rest when browser is idle so page stays snappy
+      var remaining = ANIME_CHARACTERS.filter(function(c) {
+        return c.type === 'img' && c.sketchImg &&
+          ['luffy','gojo','naruto','levi','goku'].indexOf(c.id) === -1;
       });
+      function loadNext(list, i) {
+        if (i >= list.length) return;
+        var img = new Image();
+        img.onload = img.onerror = function() {
+          if (window.requestIdleCallback) {
+            requestIdleCallback(function() { loadNext(list, i + 1); });
+          } else {
+            setTimeout(function() { loadNext(list, i + 1); }, 100);
+          }
+        };
+        img.src = list[i].sketchImg;
+      }
+      if (window.requestIdleCallback) {
+        requestIdleCallback(function() { loadNext(remaining, 0); }, { timeout: 3000 });
+      } else {
+        setTimeout(function() { loadNext(remaining, 0); }, 2000);
+      }
     })();
   </script>
   <script src="js/app.js"></script>
