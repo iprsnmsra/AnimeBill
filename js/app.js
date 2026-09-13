@@ -379,7 +379,7 @@ function generateBill() {
 }
 
 async function saveBillToCloud() {
-  if (!Auth.currentUser) return; // Need to be logged in (even offline) to save bills
+  if (!Auth.currentUser) return;
 
   try {
     var userId = Auth.currentUser.id;
@@ -394,6 +394,10 @@ async function saveBillToCloud() {
       currencySymbol: selectedCurrencySymbol
     };
 
+    // Capture the full rendered bill HTML so history shows the exact same bill
+    var billEl = document.getElementById('animeBill');
+    var billHtml = billEl ? billEl.outerHTML : null;
+
     // Calculate totals
     var subtotal = 0, totalGst = 0;
     data.items.forEach(function(item) {
@@ -407,14 +411,18 @@ async function saveBillToCloud() {
     // 1. Cloud Mode (Supabase)
     if (Auth.isCloud) {
       var result = await DB.saveBill(userId, billData, data.items, currentCharacter, currentQuote);
-      if (result.ok) {
+      if (result.ok && result.billId) {
+        // Try to store bill_html in a separate localStorage key keyed by billId
+        try {
+          localStorage.setItem('animebill_html_' + result.billId, billHtml);
+        } catch(e) { /* storage full — ignore */ }
         console.log('[AnimeBill] Bill saved to cloud.');
       }
-    } 
+    }
     // 2. Offline Mode (localStorage)
     else {
       var offlineBills = JSON.parse(localStorage.getItem('animebill_offline_bills') || '[]');
-      
+
       var newBill = {
         id: 'off_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5),
         user_id: userId,
@@ -427,19 +435,22 @@ async function saveBillToCloud() {
         grand_total: grandTotal,
         item_count: itemCount,
         character_name: currentCharacter ? currentCharacter.name : null,
-        anime_name: currentCharacter ? currentCharacter.anime : null,
+        character_id:   currentCharacter ? currentCharacter.id   : null,
+        anime_name:     currentCharacter ? currentCharacter.anime : null,
+        quote_text:     currentQuote     ? currentQuote.text      : null,
+        bill_html:      billHtml,
         created_at: new Date().toISOString(),
         items: data.items.map(function(item) {
-           return {
-             name: item.name,
-             qty: item.qty,
-             price: item.price,
-             gst_rate: item.gst || 0,
-             line_total: item.qty * item.price
-           };
+          return {
+            name: item.name,
+            qty: item.qty,
+            price: item.price,
+            gst_rate: item.gst || 0,
+            line_total: item.qty * item.price
+          };
         })
       };
-      
+
       offlineBills.push(newBill);
       localStorage.setItem('animebill_offline_bills', JSON.stringify(offlineBills));
       console.log('[AnimeBill] Bill saved locally (offline mode).');

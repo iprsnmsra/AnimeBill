@@ -343,58 +343,60 @@ async function loadBills(userId, page, search, sortBy, sortDir) {
 }
 
 // ────────────────────────────────────────────────────
-// VIEW BILL DETAIL
+// VIEW BILL DETAIL — shows the EXACT generated bill
 // ────────────────────────────────────────────────────
 
 async function viewBill(billId) {
   try {
     var data = await DataAPI.getBillWithItems(billId);
-    if (!data || !data.bill) {
-      showToast('Bill not found');
-      return;
-    }
+    if (!data || !data.bill) { showToast('Bill not found'); return; }
 
-    var bill  = data.bill;
-    var items = data.items || [];
+    var bill = data.bill;
+
+    // Try to get saved HTML (offline: in bill object, cloud: in localStorage keyed by billId)
+    var billHtml = bill.bill_html || localStorage.getItem('animebill_html_' + billId) || null;
 
     var modalTitle = document.getElementById('modalBillNo');
     if (modalTitle) modalTitle.textContent = 'Bill #' + bill.bill_no;
 
-    var itemsHtml =
-      '<table class="modal-items-table">' +
-        '<thead><tr>' +
-          '<th>Item</th><th>Qty</th><th>Price</th><th>GST</th><th>Total</th>' +
-        '</tr></thead><tbody>';
+    var modalBody = document.getElementById('modalBody');
+    if (!modalBody) return;
 
-    items.forEach(function (item) {
-      itemsHtml +=
-        '<tr>' +
-          '<td>' + escHtml(item.name) + '</td>' +
-          '<td>' + item.qty + '</td>' +
+    if (billHtml) {
+      // ── RENDER THE EXACT BILL ──────────────────────────
+      modalBody.innerHTML =
+        '<div class="modal-bill-wrapper" id="modalBillPreview">' +
+          billHtml +
+        '</div>' +
+        '<div class="modal-bill-actions">' +
+          '<button class="modal-action-btn" onclick="printHistoryBill()">🖨️ Print</button>' +
+          '<button class="modal-action-btn modal-action-btn--png" onclick="downloadHistoryPNG()">💾 Save PNG</button>' +
+        '</div>';
+    } else {
+      // ── FALLBACK: data table if HTML wasn't saved ──────
+      var items = data.items || [];
+      var rows = '';
+      items.forEach(function(item) {
+        rows += '<tr><td>' + escHtml(item.name) + '</td><td>' + item.qty + '</td>' +
           '<td>' + fmtCurrency(item.price, bill.currency_symbol) + '</td>' +
           '<td>' + (item.gst_rate || 0) + '%</td>' +
-          '<td>' + fmtCurrency(item.line_total, bill.currency_symbol) + '</td>' +
-        '</tr>';
-    });
-
-    itemsHtml +=
-        '</tbody></table>' +
+          '<td>' + fmtCurrency(item.line_total, bill.currency_symbol) + '</td></tr>';
+      });
+      modalBody.innerHTML =
+        '<div class="modal-meta">' +
+          '<p><strong>Shop:</strong> ' + escHtml(bill.shop_name || 'N/A') + '</p>' +
+          '<p><strong>Character:</strong> ' + escHtml(bill.character_name || 'N/A') + ' — ' + escHtml(bill.anime_name || '') + '</p>' +
+          '<p><strong>Date:</strong> ' + new Date(bill.created_at).toLocaleString() + '</p>' +
+        '</div>' +
+        '<table class="modal-items-table"><thead><tr>' +
+          '<th>Item</th><th>Qty</th><th>Price</th><th>GST</th><th>Total</th>' +
+        '</tr></thead><tbody>' + rows + '</tbody></table>' +
         '<div class="modal-totals">' +
           '<p><strong>Subtotal:</strong> ' + fmtCurrency(bill.subtotal, bill.currency_symbol) + '</p>' +
           '<p><strong>GST:</strong> ' + fmtCurrency(bill.total_gst, bill.currency_symbol) + '</p>' +
           '<p class="modal-grand-total"><strong>Grand Total:</strong> ' + fmtCurrency(bill.grand_total, bill.currency_symbol) + '</p>' +
-        '</div>';
-
-    var modalBody = document.getElementById('modalBody');
-    if (modalBody) {
-      modalBody.innerHTML =
-        '<div class="modal-meta">' +
-          '<p><strong>Shop:</strong> ' + escHtml(bill.shop_name || 'N/A') + '</p>' +
-          '<p><strong>Character:</strong> ' + escHtml(bill.character_name || 'N/A') + '</p>' +
-          '<p><strong>Anime:</strong> ' + escHtml(bill.anime_name || 'N/A') + '</p>' +
-          '<p><strong>Date:</strong> ' + new Date(bill.created_at).toLocaleString() + '</p>' +
         '</div>' +
-        itemsHtml;
+        '<p class="modal-regen-note">⚠️ This bill was saved before full history was enabled. Generate it again from the main page to save the visual.</p>';
     }
 
     document.getElementById('billModal').classList.remove('hidden');
@@ -403,6 +405,54 @@ async function viewBill(billId) {
     showToast('Error loading bill details');
   }
 }
+
+function printHistoryBill() {
+  var el = document.getElementById('modalBillPreview');
+  if (!el) return;
+  var win = window.open('', '_blank', 'width=700,height=900');
+  win.document.write(
+    '<!DOCTYPE html><html><head>' +
+    '<title>AnimeBill Print</title>' +
+    '<link rel="stylesheet" href="' + window.location.origin + '/css/style.css">' +
+    '<style>body{background:#fff;display:flex;justify-content:center;padding:20px} @media print{body{padding:0}}</style>' +
+    '</head><body>' +
+    el.innerHTML +
+    '<script>window.onload=function(){window.print();window.close();}<\/script>' +
+    '</body></html>'
+  );
+  win.document.close();
+}
+
+async function downloadHistoryPNG() {
+  var el = document.getElementById('modalBillPreview');
+  if (!el) { showToast('No bill to export'); return; }
+  var billEl = el.querySelector('#animeBill') || el.firstElementChild;
+  if (!billEl) { showToast('No bill to export'); return; }
+
+  if (typeof html2canvas === 'undefined') {
+    // Load html2canvas dynamically
+    await new Promise(function(resolve, reject) {
+      var s = document.createElement('script');
+      s.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';
+      s.onload = resolve; s.onerror = reject;
+      document.head.appendChild(s);
+    });
+  }
+
+  showToast('📸 Generating PNG...');
+  try {
+    var canvas = await html2canvas(billEl, { scale: 2, useCORS: true, backgroundColor: '#fff' });
+    var link = document.createElement('a');
+    link.download = 'AnimeBill_' + Date.now() + '.png';
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+    showToast('✅ PNG downloaded!');
+  } catch(e) {
+    console.error(e);
+    showToast('PNG export failed — try Print instead');
+  }
+}
+
 
 // ────────────────────────────────────────────────────
 // DELETE BILL

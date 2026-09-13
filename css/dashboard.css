@@ -490,3 +490,68 @@ body {
         grid-template-columns: 1fr;
     }
 }
+
+/* ─── Exact Bill Preview in Modal ─── */
+.modal-bill-wrapper {
+    display: flex;
+    justify-content: center;
+    padding: 1.5rem 1rem 0;
+    background: #f0f0f0;
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+/* Scale the bill to fit the modal nicely */
+.modal-bill-wrapper #animeBill {
+    transform-origin: top center;
+    transform: scale(0.72);
+    margin-bottom: -10%;
+}
+
+/* Action bar below the bill */
+.modal-bill-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    margin-top: 1.5rem;
+    padding-bottom: 0.5rem;
+}
+
+.modal-action-btn {
+    padding: 0.75rem 2rem;
+    border: none;
+    border-radius: 30px;
+    background: linear-gradient(135deg, #333 0%, #111 100%);
+    color: #fff;
+    font-family: var(--font-heading);
+    font-size: 1rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    cursor: pointer;
+    transition: transform 0.15s, box-shadow 0.15s;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.35);
+}
+.modal-action-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 18px rgba(0,0,0,0.45);
+}
+.modal-action-btn--png {
+    background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+}
+
+/* Note for old bills that don't have saved HTML */
+.modal-regen-note {
+    margin-top: 1rem;
+    padding: 0.75rem 1rem;
+    background: rgba(255,200,0,0.08);
+    border: 1px solid rgba(255,200,0,0.25);
+    border-radius: 8px;
+    color: #888;
+    font-size: 0.8rem;
+    text-align: center;
+}
+
+/* Widen modal to properly show full bill */
+.modal-content {
+    max-width: 720px !important;
+}
