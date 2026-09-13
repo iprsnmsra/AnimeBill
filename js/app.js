@@ -352,22 +352,6 @@ function renderBillHTML(data, billNo, character, quote) {
 // GENERATE BILL
 // ──────────────────────────────────────────────────────
 
-function preloadImages() {
-  setTimeout(function() {
-    if (typeof ANIME_CHARACTERS !== 'undefined') {
-      ANIME_CHARACTERS.forEach(function(c) {
-        if (c.type === 'img' && c.sketchImg) {
-          var img = new Image();
-          img.src = c.sketchImg;
-        }
-      });
-    }
-  }, 1000);
-}
-
-// Call preload on load
-document.addEventListener('DOMContentLoaded', preloadImages);
-
 function generateBill() {
   const data = collectFormData();
   if (!data.items.length) {
@@ -375,14 +359,15 @@ function generateBill() {
     return;
   }
 
-  if (!currentCharacter) {
+  // Use selected character if user picked one, else use current random
+  const selId = document.getElementById('characterSelect').value;
+  if (selId) {
+    currentCharacter = getCharacterById(selId);
+  } else {
     currentCharacter = getRandomCharacter();
     document.getElementById('characterSelect').value = currentCharacter.id;
   }
-  if (!currentQuote) currentQuote = getRandomQuote();
-  
-  // Only generate a new bill number if it's not already generated, or always generate a new one?
-  // Usually generating a bill generates a new number if we are making a new bill. Let's just generate a new one.
+  currentQuote  = getRandomQuote();
   currentBillNo = generateBillNo();
 
   const wrapper = document.getElementById('billWrapper');

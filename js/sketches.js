@@ -358,15 +358,18 @@ function getCharacterById(id) {
 // ─── Helper: Build the background sketch HTML for bill ───
 function buildSketchHTML(character) {
   if (character.type === 'img') {
-    return `<img
-      src="${character.sketchImg}"
-      alt="${character.name} sketch"
-      class="bill-sketch-img"
-      draggable="false"
-    >`;
+    return '<img' +
+      ' src="' + character.sketchImg + '"' +
+      ' alt=""' +
+      ' class="bill-sketch-img"' +
+      ' loading="eager"' +
+      ' decoding="async"' +
+      ' draggable="false"' +
+      ' onerror="this.style.display=\'none\'"' +
+    '>';
   } else {
     // SVG fallback
-    return `<div class="bill-sketch-svg">${character.sketchSvg}</div>`;
+    return '<div class="bill-sketch-svg">' + character.sketchSvg + '</div>';
   }
 }
 

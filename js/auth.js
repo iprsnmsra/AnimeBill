@@ -37,43 +37,57 @@ function saveSession(user) {
 // ─── Auth API ───
 const Auth = {
   currentUser: null,
+  _initialized: false,
+  _readyResolve: null,
+  ready: null, // Promise that resolves when init() is complete
+
   get isCloud() {
     return typeof DB !== 'undefined' && DB !== null;
   },
 
+
   async init() {
-    if (this.isCloud) {
-      const session = await DB.getSession();
-      if (session && session.user) {
-        const profile = await DB.getProfile(session.user.id);
-        this.currentUser = {
-          id: session.user.id,
-          email: session.user.email,
-          name: session.user.user_metadata?.name || 'User',
-          profile: profile || { shopName: (session.user.user_metadata?.name || 'User') + "'s Store", address: '', phone: '', gstin: '' }
-        };
-        this._onLogin(this.currentUser);
-      }
-      DB.onAuthStateChange(async (user, event) => {
-        if (event === 'SIGNED_OUT') {
-          this.currentUser = null;
-          this._renderHeader();
+    // If already initialized or in progress, return same promise
+    if (this.ready) return this.ready;
+
+    this.ready = new Promise(async (resolve) => {
+      if (this.isCloud) {
+        const session = await DB.getSession();
+        if (session && session.user) {
+          const profile = await DB.getProfile(session.user.id);
+          this.currentUser = {
+            id: session.user.id,
+            email: session.user.email,
+            name: session.user.user_metadata?.name || 'User',
+            profile: profile || { shopName: (session.user.user_metadata?.name || 'User') + "'s Store", address: '', phone: '', gstin: '' }
+          };
+          this._onLogin(this.currentUser);
         }
-      });
-    } else {
-      const session = getSession();
-      if (session) {
-        const users = getUsers();
-        const user  = users.find(u => u.id === session.id);
-        if (user) {
-          this.currentUser = user;
-          this._onLogin(user);
-        } else {
-          saveSession(null);
+        DB.onAuthStateChange(async (user, event) => {
+          if (event === 'SIGNED_OUT') {
+            this.currentUser = null;
+            this._renderHeader();
+          }
+        });
+      } else {
+        const session = getSession();
+        if (session) {
+          const users = getUsers();
+          const user  = users.find(u => u.id === session.id);
+          if (user) {
+            this.currentUser = user;
+            this._onLogin(user);
+          } else {
+            saveSession(null);
+          }
         }
       }
-    }
-    this._renderHeader();
+      this._renderHeader();
+      this._initialized = true;
+      resolve();
+    });
+
+    return this.ready;
   },
 
   async register(email, password, name) {
@@ -159,8 +173,10 @@ const Auth = {
       saveSession(null);
     }
     this.currentUser = null;
+    this.ready = null; // Allow re-init after logout
+    this._initialized = false;
     this._renderHeader();
-    showToast('👋 Logged out successfully!');
+    if (typeof showToast === 'function') showToast('👋 Logged out successfully!');
   },
 
   async saveProfile(profile) {
@@ -180,11 +196,11 @@ const Auth = {
       saveUsers(users);
       saveSession(this.currentUser);
     }
-    showToast('💾 Profile saved! It will auto-fill next time.');
+    if (typeof showToast === 'function') showToast('💾 Profile saved! It will auto-fill next time.');
   },
 
   _onLogin(user) {
-    // Auto-fill form fields from saved profile
+    // Auto-fill form fields from saved profile (only on main page)
     const p = user.profile || {};
     const set = (id, val) => { const el = document.getElementById(id); if (el && val) el.value = val; };
     set('shopName',    p.shopName);
@@ -192,7 +208,7 @@ const Auth = {
     set('shopPhone',   p.phone);
     set('gstin',       p.gstin);
     if (typeof liveUpdate === 'function') liveUpdate();
-    showToast(`✅ Welcome back, ${user.name.split(' ')[0]}! Your profile has been loaded.`);
+    if (typeof showToast === 'function') showToast(`✅ Welcome back, ${user.name.split(' ')[0]}!`);
   },
 
   _renderHeader() {

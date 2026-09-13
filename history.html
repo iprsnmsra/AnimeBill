@@ -114,8 +114,8 @@
         <p>AnimeBill v2.0 · <a href="https://github.com/iprsnmsra">github.com/iprsnmsra</a></p>
     </footer>
 
-    <!-- Scripts -->
-    <script src="js/config.js"></script>
+    <!-- Scripts (load order matters: SDK → client → auth → dashboard) -->
+    <script src="js/config.js" onerror="console.info('[AnimeBill] Offline mode')"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="js/supabase-client.js"></script>
     <script src="js/auth.js"></script>

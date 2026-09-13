@@ -14,9 +14,14 @@ var currentSortBy = 'created_at';
 var currentSortDir = false; // false = DESC
 
 document.addEventListener('DOMContentLoaded', async function () {
-  // Wait for Auth to initialize (it does so on DOMContentLoaded too, but this is safer)
-  await Auth.init();
-  
+  // auth.js fires Auth.init() on its own DOMContentLoaded.
+  // Both listeners may run in parallel, so wait for the shared ready promise.
+  if (Auth.ready) {
+    await Auth.ready;
+  } else {
+    await Auth.init();
+  }
+
   if (!Auth.currentUser) {
     showLoginRequired();
     return;
@@ -25,7 +30,7 @@ document.addEventListener('DOMContentLoaded', async function () {
   currentUser = Auth.currentUser.id;
 
   if (!Auth.isCloud) {
-    showToast('⚠️ Running in offline mode — bills saved locally on this device only.');
+    showToast('📴 Offline mode — bills saved on this device only.');
   }
 
   setupEvents();

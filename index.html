@@ -25,9 +25,15 @@
   <!-- App Icon (emoji fallback) -->
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎌</text></svg>">
 
-  <!-- Supabase Config + SDK (cloud features) -->
-  <script src="js/config.js" onerror="console.info('[AnimeBill] config.js not found — offline mode')"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
+  <!-- Preload most-used character sketches for instant display on Generate -->
+  <link rel="preload" as="image" href="assets/sketches/luffy.png">
+  <link rel="preload" as="image" href="assets/sketches/gojo.png">
+  <link rel="preload" as="image" href="assets/sketches/naruto.png">
+  <link rel="preload" as="image" href="assets/sketches/levi.png">
+  <link rel="preload" as="image" href="assets/sketches/goku.png">
+
+  <!-- Supabase Config + SDK (loaded sync so DB is available when scripts run) -->
+  <script src="js/config.js" onerror="console.info('[AnimeBill] Offline mode')"></script>
 </head>
 <body>
 
@@ -210,9 +216,23 @@
   </div>
 
   <!-- ═══ SCRIPTS ═══ -->
+  <!-- Supabase SDK must load before supabase-client.js -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="js/supabase-client.js"></script>
   <script src="js/quotes.js"></script>
   <script src="js/sketches.js"></script>
+  <!-- Preload ALL character images immediately after sketches.js so they are cached on first Generate click -->
+  <script>
+    (function() {
+      if (typeof ANIME_CHARACTERS === 'undefined') return;
+      ANIME_CHARACTERS.forEach(function(c) {
+        if (c.type === 'img' && c.sketchImg) {
+          var img = new Image();
+          img.src = c.sketchImg;
+        }
+      });
+    })();
+  </script>
   <script src="js/app.js"></script>
   <script src="js/auth.js"></script>
 
